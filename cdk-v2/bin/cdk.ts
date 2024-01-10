@@ -12,4 +12,3 @@ const env = {
 };
 
 new EcsCdkStack(app, env.stackName, { env });
-

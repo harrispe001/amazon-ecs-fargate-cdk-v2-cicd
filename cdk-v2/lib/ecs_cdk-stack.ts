@@ -27,7 +27,7 @@ export class EcsCdkStack extends cdk.Stack {
     const githubPersonalTokenSecretName = new cdk.CfnParameter(this, "githubPersonalTokenSecretName", {
       type: "String",
       description: "The name of the AWS Secrets Manager Secret which holds the GitHub Personal Access Token for this project.",
-      default: "/aws-samples/amazon-ecs-fargate-cdk-v2-cicd/github/personal_access_token"
+      default: "aws-samples/amazon-ecs-fargate-cdk-v2-cicd/github/personal_access_token"
     })
     //default: `${this.stackName}`
 
@@ -114,9 +114,9 @@ export class EcsCdkStack extends cdk.Stack {
 
     /* where do these constants come from? 6, 10, 60? */
 
-    const scaling = fargateService.service.autoScaleTaskCount({ maxCapacity: 6 });
+    const scaling = fargateService.service.autoScaleTaskCount({ maxCapacity: 1 });
     scaling.scaleOnCpuUtilization('cpuscaling', {
-      targetUtilizationPercent: 10,
+      targetUtilizationPercent: 50,
       scaleInCooldown: cdk.Duration.seconds(60),
       scaleOutCooldown: cdk.Duration.seconds(60)
     });
