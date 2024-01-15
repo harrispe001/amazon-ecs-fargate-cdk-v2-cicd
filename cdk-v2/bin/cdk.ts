@@ -2,6 +2,8 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { EcsCdkStack } from '../lib/ecs_cdk-stack';
+import { WillkommenFargate } from '../lib/test'
+import { EcsCdkStackOrig } from '../lib/ecs_cdk-stack-orig';
 
 const app = new cdk.App();
 
@@ -11,4 +13,4 @@ const env = {
   stackName: app.node.tryGetContext('stackName') || process.env.STACK_NAME || 'EcsCdkStack'
 };
 
-new EcsCdkStack(app, env.stackName, { env });
+new EcsCdkStackOrig(app, env.stackName, { env });

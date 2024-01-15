@@ -27,7 +27,7 @@ export class EcsCdkStack extends cdk.Stack {
     const githubPersonalTokenSecretName = new cdk.CfnParameter(this, "githubPersonalTokenSecretName", {
       type: "String",
       description: "The name of the AWS Secrets Manager Secret which holds the GitHub Personal Access Token for this project.",
-      default: "aws-samples/amazon-ecs-fargate-cdk-v2-cicd/github/personal_access_token"
+      default: "/aws-samples/amazon-ecs-fargate-cdk-v2-cicd/github/personal_access_token"
     })
     //default: `${this.stackName}`
 
@@ -43,14 +43,14 @@ export class EcsCdkStack extends cdk.Stack {
           name: 'public',
           subnetType: ec2.SubnetType.PUBLIC,
         },
-        {
-          cidrMask: 24,
-          name: 'private',
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-        },
+        // {
+        //   cidrMask: 24,
+        //   name: 'private',
+        //   subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        // },
         // Add more subnet configurations as needed for private and isolated subnets
       ],
-      natGateways: 1,
+      // natGateways: 1,
       maxAzs: 3 /* does a sample need 3 az's? */
     });
 
@@ -82,28 +82,15 @@ export class EcsCdkStack extends cdk.Stack {
       actions: [
         "ecr:getauthorizationtoken",
         "ecr:batchchecklayeravailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:GetRepositoryPolicy",
-        "ecr:DescribeRepositories",
-        "ecr:ListImages",
-        "ecr:DescribeImages",
-        "ecr:BatchGetImage",
-        "ecr:GetLifecyclePolicy",
-        "ecr:GetLifecyclePolicyPreview",
-        "ecr:ListTagsForResource",
-        "ecr:DescribeImageScanFindings",
-        "ecr:*",
+        "ecr:getdownloadurlforlayer",
+        "ecr:batchgetimage",
         "logs:createlogstream",
-        "logs:putlogevents",
+        "logs:putlogevents"
       ]
     });
 
-    taskrole.addToPolicy(executionRolePolicy)
-
     const taskDef = new ecs.FargateTaskDefinition(this, "ecs-taskdef", {
-      taskRole: taskrole,
-      memoryLimitMiB: 512,
-      cpu: 256,
+      taskRole: taskrole
     });
 
     taskDef.addToExecutionRolePolicy(executionRolePolicy);
@@ -113,29 +100,26 @@ export class EcsCdkStack extends cdk.Stack {
       image: ecs.ContainerImage.fromRegistry(baseImage),
       memoryLimitMiB: 256,
       cpu: 256,
-      logging,
-      environment: {},
+      logging
     });
 
     container.addPortMappings({
       containerPort: 5000,
-      protocol: ecs.Protocol.TCP,
+      protocol: ecs.Protocol.TCP
     });
 
-
-    const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "ecs-service", {
-      cluster: cluster,
-      taskDefinition: taskDef,
-      publicLoadBalancer: true,
-      desiredCount: 1,
-      listenerPort: 80,
-      securityGroups: []
-    });
+    // const fargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "ecs-service", {
+    //   cluster: cluster,
+    //   taskDefinition: taskDef,
+    //   publicLoadBalancer: true,
+    //   desiredCount: 1,
+    //   listenerPort: 80
+    // });
 
 
     /* where do these constants come from? 6, 10, 60? */
 
-    // const scaling = fargateService.service.autoScaleTaskCount({ maxCapacity: 6, minCapacity:1 });
+    // const scaling = fargateService.service.autoScaleTaskCount({ maxCapacity: 6 });
     // scaling.scaleOnCpuUtilization('cpuscaling', {
     //   targetUtilizationPercent: 10,
     //   scaleInCooldown: cdk.Duration.seconds(60),
@@ -240,11 +224,11 @@ export class EcsCdkStack extends cdk.Stack {
       actionName: 'approve',
     });
 
-    const deployAction = new codepipeline_actions.EcsDeployAction({
-      actionName: 'deployAction',
-      service: fargateService.service,
-      imageFile: new codepipeline.ArtifactPath(buildOutput, `imagedefinitions.json`)
-    });
+    // const deployAction = new codepipeline_actions.EcsDeployAction({
+    //   actionName: 'deployAction',
+    //   service: fargateService.service,
+    //   imageFile: new codepipeline.ArtifactPath(buildOutput, `imagedefinitions.json`)
+    // });
 
 
 
@@ -266,10 +250,10 @@ export class EcsCdkStack extends cdk.Stack {
           stageName: 'approve',
           actions: [manualApprovalAction],
         },
-        {
-          stageName: 'deploy-to-ecs',
-          actions: [deployAction],
-        }
+        // {
+        //   stageName: 'deploy-to-ecs',
+        //   actions: [deployAction],
+        // }
       ]
     });
 
@@ -288,7 +272,7 @@ export class EcsCdkStack extends cdk.Stack {
 
 
     new cdk.CfnOutput(this, "image", { value: ecrRepo.repositoryUri + ":latest" })
-    new cdk.CfnOutput(this, 'loadbalancerdns', { value: fargateService.loadBalancer.loadBalancerDnsName });
+    // new cdk.CfnOutput(this, 'loadbalancerdns', { value: fargateService.loadBalancer.loadBalancerDnsName });
   }
 
 
